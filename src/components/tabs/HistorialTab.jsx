@@ -1,10 +1,17 @@
 import { useState } from 'react';
-import { PEOPLE, formatARS, formatDateGroup, expenseIsEssential } from '../../data/titosData';
+import {
+  PEOPLE, formatARS, formatDateGroup, expenseIsEssential, matchesOwnershipFilter, OWNERSHIP_OPTIONS,
+} from '../../data/titosData';
+import { IconChevronDown } from '../ui/Icons';
 
 export default function HistorialTab({ categories, expenses }) {
   const [filter, setFilter] = useState('all');
+  const [ownership, setOwnership] = useState('shared');
+  const [ownershipMenuOpen, setOwnershipMenuOpen] = useState(false);
+  const ownershipLabel = OWNERSHIP_OPTIONS.find((o) => o.key === ownership).label;
 
   const filtered = [...expenses]
+    .filter((e) => matchesOwnershipFilter(e, ownership))
     .sort((a, b) => b.date.localeCompare(a.date))
     .filter((e) => {
       const essential = expenseIsEssential(e, categories);
@@ -39,6 +46,25 @@ export default function HistorialTab({ categories, expenses }) {
   return (
     <>
       <div className="screen-title">Historial</div>
+      <div style={{ position: 'relative', padding: '14px 16px 0', flexShrink: 0 }}>
+        <button className="pill-select" onClick={() => setOwnershipMenuOpen((v) => !v)}>
+          {ownershipLabel.toUpperCase()}
+          <IconChevronDown rotate={ownershipMenuOpen} />
+        </button>
+        {ownershipMenuOpen && (
+          <div className="dropdown-menu">
+            {OWNERSHIP_OPTIONS.map((o) => (
+              <button
+                key={o.key}
+                className={o.key === ownership ? 'active' : ''}
+                onClick={() => { setOwnership(o.key); setOwnershipMenuOpen(false); }}
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
       <div className="filter-row">
         <button className="filter-chip" style={chipStyle('all')} onClick={() => setFilter('all')}>TODOS</button>
         <button className="filter-chip" style={chipStyle('essential')} onClick={() => setFilter('essential')}>INDISPENSABLE</button>

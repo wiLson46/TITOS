@@ -116,7 +116,12 @@ export function isSharedExpense(exp) {
   return exp.split.wilson > 0 && exp.split.yanina > 0;
 }
 
-export const OWNERSHIP_FILTERS = ['shared', 'wilson', 'yanina', 'all'];
+export const OWNERSHIP_OPTIONS = [
+  { key: 'wilson', label: 'Solo Wilson' },
+  { key: 'yanina', label: 'Solo Yanina' },
+  { key: 'shared', label: 'Gastos conjuntos' },
+  { key: 'all', label: 'Todos los gastos' },
+];
 
 export function matchesOwnershipFilter(exp, filter) {
   switch (filter) {

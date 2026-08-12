@@ -2,17 +2,11 @@ import { useState } from 'react';
 import {
   PEOPLE, computeSummary, computeBalance, expensesForMonth, formatARS,
   formatDateShort, monthLabel, monthWord, recentPeriods, expenseIsEssential, matchesOwnershipFilter,
+  OWNERSHIP_OPTIONS,
 } from '../../data/titosData';
 import { IconChevronDown, IconCheck, IconArrow } from '../ui/Icons';
 
 const PERIODS = recentPeriods(2);
-
-const OWNERSHIP_OPTIONS = [
-  { key: 'wilson', label: 'Solo Wilson' },
-  { key: 'yanina', label: 'Solo Yanina' },
-  { key: 'shared', label: 'Gastos conjuntos' },
-  { key: 'all', label: 'Todos los gastos' },
-];
 
 export default function InicioTab({ categories, expenses, viewer, onGoDividir, onGoMetricas }) {
   const [periodIdx, setPeriodIdx] = useState(0);
