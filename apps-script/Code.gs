@@ -48,6 +48,7 @@ var SEED_CATEGORIES = [
   ['expensas',      'Expensas',      true,  50, 50],
   ['luz',           'Luz',           true,  50, 50],
   ['gas',           'Gas',           true,  50, 50],
+  ['agua',          'Agua',          true,  50, 50],
   ['internet',      'Internet',      true,  50, 50],
   ['super',         'Súper',         true,  50, 50],
   ['auto',          'Auto',          true,  50, 50],
