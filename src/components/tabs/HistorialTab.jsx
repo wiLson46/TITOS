@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   PEOPLE, formatARS, formatDateGroup, expenseIsEssential, matchesOwnershipFilter, OWNERSHIP_OPTIONS,
-  recentPeriods, monthLabel, expensesForMonth,
+  recentPeriods, monthLabel, expensesForMonth, sortByDateDesc,
 } from '../../data/titosData';
 import { IconChevronDown } from '../ui/Icons';
 
@@ -16,9 +16,8 @@ export default function HistorialTab({ categories, expenses }) {
   const ownershipLabel = OWNERSHIP_OPTIONS.find((o) => o.key === ownership).label;
   const period = PERIODS[periodIdx];
 
-  const filtered = expensesForMonth([...expenses], period.year, period.month)
+  const filtered = sortByDateDesc(expensesForMonth(expenses, period.year, period.month))
     .filter((e) => matchesOwnershipFilter(e, ownership))
-    .sort((a, b) => b.date.localeCompare(a.date))
     .filter((e) => {
       const essential = expenseIsEssential(e, categories);
       if (filter === 'essential') return essential;

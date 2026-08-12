@@ -2,7 +2,7 @@ import { useState } from 'react';
 import {
   PEOPLE, computeSummary, computeBalance, expensesForMonth, formatARS,
   formatDateShort, monthLabel, monthWord, recentPeriods, expenseIsEssential, matchesOwnershipFilter,
-  OWNERSHIP_OPTIONS,
+  OWNERSHIP_OPTIONS, sortByDateDesc,
 } from '../../data/titosData';
 import { IconChevronDown, IconCheck, IconArrow } from '../ui/Icons';
 
@@ -37,8 +37,7 @@ export default function InicioTab({ categories, expenses, viewer, onGoDividir, o
     pct: periodSummary.total ? Math.round((c.total / periodSummary.total) * 100) : 0,
   }));
 
-  const recent = [...filteredExpenses]
-    .sort((a, b) => b.date.localeCompare(a.date))
+  const recent = sortByDateDesc(filteredExpenses)
     .slice(0, 3)
     .map((e) => {
       const cat = categories.find((c) => c.id === e.categoryId);

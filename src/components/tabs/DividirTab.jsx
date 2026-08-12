@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { PEOPLE, computeBalance, formatARS, formatDateShort, isSharedExpense } from '../../data/titosData';
+import { PEOPLE, computeBalance, formatARS, formatDateShort, isSharedExpense, sortByDateDesc } from '../../data/titosData';
 import { IconCheck, IconArrow } from '../ui/Icons';
 
 export default function DividirTab({ categories, expenses, viewer, onSettleUp, onSettleExpense, busy }) {
@@ -9,9 +9,7 @@ export default function DividirTab({ categories, expenses, viewer, onSettleUp, o
   const balance = computeBalance(unsettled);
   const isSettled = balance.amount === 0;
 
-  const pending = unsettled
-    .filter(isSharedExpense)
-    .sort((a, b) => b.date.localeCompare(a.date))
+  const pending = sortByDateDesc(unsettled.filter(isSharedExpense))
     .map((e) => {
       const cat = categories.find((c) => c.id === e.categoryId);
       return {

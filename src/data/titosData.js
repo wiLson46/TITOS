@@ -92,6 +92,13 @@ export function computeBalance(expenses) {
   };
 }
 
+// Orden cronológico descendente (más nuevo primero). Compara por fecha real
+// en vez de por string: soporta cualquier formato de fecha parseable, no
+// solo 'YYYY-MM-DD' estricto.
+export function sortByDateDesc(expenses) {
+  return [...expenses].sort((a, b) => new Date(b.date) - new Date(a.date));
+}
+
 export function expensesForMonth(expenses, year, month) {
   return expenses.filter((e) => {
     const d = new Date(e.date + 'T12:00:00');
