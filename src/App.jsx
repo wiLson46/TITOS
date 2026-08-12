@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { useAuth } from './auth/AuthContext';
 import LoginScreen from './auth/LoginScreen';
 import { DataProvider, useData } from './data/DataContext';
-import { EMAIL_TO_PERSON, PEOPLE } from './data/titosData';
+import { EMAIL_TO_PERSON } from './data/titosData';
 import TabBar from './components/TabBar';
+import UserMenu from './components/UserMenu';
 import AddExpenseModal from './components/AddExpenseModal';
 import InicioTab from './components/tabs/InicioTab';
 import HistorialTab from './components/tabs/HistorialTab';
@@ -34,7 +35,7 @@ function Toast({ msg }) {
 
 function AppShell() {
   const { user, logout } = useAuth();
-  const { categories, expenses, loading, error, addExpense, updateCategoryDefaultSplit, settleUp } = useData();
+  const { categories, expenses, loading, error, addExpense, settleUp, settleExpense } = useData();
   const [tab, setTab] = useState('inicio');
   const [modalOpen, setModalOpen] = useState(false);
   const [toast, setToast] = useState('');
@@ -65,11 +66,6 @@ function AppShell() {
     showToast('Gasto agregado');
   };
 
-  const handleUpdateSplit = async (categoryId, split) => {
-    await updateCategoryDefaultSplit(categoryId, split);
-    showToast('División actualizada');
-  };
-
   const handleSettleUp = async () => {
     setBusy(true);
     try {
@@ -80,6 +76,11 @@ function AppShell() {
     }
   };
 
+  const handleSettleExpense = async (expenseId) => {
+    await settleExpense(expenseId);
+    showToast('Gasto liquidado');
+  };
+
   return (
     <div className="app-shell">
       <div className="topbar">
@@ -87,10 +88,7 @@ function AppShell() {
           <img src={`${import.meta.env.BASE_URL}logo-red.svg`} alt="" />
           <span>(gas)TITOS by Wild Ideas</span>
         </div>
-        <div className="topbar-avatars" onClick={logout} title="Cerrar sesión">
-          <div className="avatar" style={{ background: PEOPLE.wilson.color }}>W</div>
-          <div className="avatar overlap" style={{ background: PEOPLE.yanina.color }}>Y</div>
-        </div>
+        <UserMenu viewer={viewer} email={user.email} onLogout={logout} />
       </div>
 
       <Toast msg={toast} />
@@ -104,8 +102,8 @@ function AppShell() {
       {tab === 'historial' && <HistorialTab categories={categories} expenses={expenses} />}
       {tab === 'dividir' && (
         <DividirTab
-          categories={categories} expenses={expenses}
-          onSettleUp={handleSettleUp} onUpdateSplit={handleUpdateSplit} busy={busy}
+          categories={categories} expenses={expenses} viewer={viewer}
+          onSettleUp={handleSettleUp} onSettleExpense={handleSettleExpense} busy={busy}
         />
       )}
       {tab === 'metricas' && <MetricasTab categories={categories} expenses={expenses} />}

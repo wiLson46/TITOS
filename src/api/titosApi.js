@@ -31,7 +31,6 @@ async function callApi(action, params, credential) {
 export const titosApi = {
   getData: (credential) => callApi('getData', {}, credential),
   addExpense: (credential, expense) => callApi('addExpense', { expense }, credential),
-  updateCategoryDefaultSplit: (credential, categoryId, split) =>
-    callApi('updateCategoryDefaultSplit', { categoryId, split }, credential),
   settleUp: (credential) => callApi('settleUp', {}, credential),
+  settleExpense: (credential, expenseId) => callApi('settleExpense', { expenseId }, credential),
 };

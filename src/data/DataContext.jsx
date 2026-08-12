@@ -46,22 +46,22 @@ export function DataProvider({ children }) {
     [credential]
   );
 
-  const updateCategoryDefaultSplit = useCallback(
-    async (categoryId, split) => {
-      const json = await titosApi.updateCategoryDefaultSplit(credential, categoryId, split);
-      applyDataset(json);
-    },
-    [credential]
-  );
-
   const settleUp = useCallback(async () => {
     const json = await titosApi.settleUp(credential);
     applyDataset(json);
   }, [credential]);
 
+  const settleExpense = useCallback(
+    async (expenseId) => {
+      const json = await titosApi.settleExpense(credential, expenseId);
+      applyDataset(json);
+    },
+    [credential]
+  );
+
   return (
     <DataContext.Provider
-      value={{ categories, expenses, loading, error, refetch, addExpense, updateCategoryDefaultSplit, settleUp }}
+      value={{ categories, expenses, loading, error, refetch, addExpense, settleUp, settleExpense }}
     >
       {children}
     </DataContext.Provider>

@@ -1,24 +1,34 @@
 import { useState } from 'react';
-import { PEOPLE, computeBalance, formatARS } from '../../data/titosData';
+import { PEOPLE, computeBalance, formatARS, formatDateShort, isSharedExpense } from '../../data/titosData';
 import { IconCheck, IconArrow } from '../ui/Icons';
 
-export default function DividirTab({ categories, expenses, onSettleUp, onUpdateSplit, busy }) {
-  const [editingId, setEditingId] = useState(null);
-  const [tempPct, setTempPct] = useState(50);
+export default function DividirTab({ categories, expenses, viewer, onSettleUp, onSettleExpense, busy }) {
+  const [settlingId, setSettlingId] = useState(null);
 
   const unsettled = expenses.filter((e) => !e.settled);
   const balance = computeBalance(unsettled);
   const isSettled = balance.amount === 0;
 
-  const startEdit = (cat) => {
-    if (editingId === cat.id) { setEditingId(null); return; }
-    setEditingId(cat.id);
-    setTempPct(cat.defaultSplit.wilson);
-  };
+  const pending = unsettled
+    .filter(isSharedExpense)
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .map((e) => {
+      const cat = categories.find((c) => c.id === e.categoryId);
+      return {
+        ...e,
+        categoryName: e.detail ? `${cat?.name} · ${e.detail}` : cat?.name,
+        color: (e.essential !== undefined ? e.essential : cat?.essential) ? '#3F3250' : '#E14658',
+        payer: PEOPLE[e.paidBy],
+      };
+    });
 
-  const save = async (cat) => {
-    await onUpdateSplit(cat.id, { wilson: tempPct, yanina: 100 - tempPct });
-    setEditingId(null);
+  const settleRow = async (id) => {
+    setSettlingId(id);
+    try {
+      await onSettleExpense(id);
+    } finally {
+      setSettlingId(null);
+    }
   };
 
   return (
@@ -49,43 +59,41 @@ export default function DividirTab({ categories, expenses, onSettleUp, onUpdateS
                 <div style={{ fontFamily: "'Space Mono',monospace", fontWeight: 700, fontSize: 26 }}>{formatARS(balance.amount)}</div>
               </div>
             </div>
-            <button className="settle-btn" onClick={onSettleUp} disabled={busy}>
-              {busy ? 'Liquidando…' : 'Liquidar ahora'}
-            </button>
+            {viewer === balance.owesId && (
+              <button className="settle-btn" onClick={onSettleUp} disabled={busy}>
+                {busy ? 'Liquidando…' : 'Liquidar ahora'}
+              </button>
+            )}
           </>
         )}
       </div>
 
-      <div className="section-title" style={{ margin: '26px 16px 4px', flexShrink: 0 }}>Reglas de división</div>
-      <div className="rules-desc">Definí cómo se divide cada categoría. Se aplica solo, sin preguntarte cada vez.</div>
-      <div className="list-card" style={{ marginBottom: 24 }}>
-        {categories.map((cat) => {
-          const editing = editingId === cat.id;
-          const otherPct = 100 - tempPct;
-          return (
-            <div className="rule-row" key={cat.id}>
-              <div className="rule-row-head" onClick={() => startEdit(cat)}>
-                <span className="dot sm" style={{ background: cat.essential ? '#3F3250' : '#E14658' }} />
-                <span className="rule-row-name">{cat.name}</span>
-                <span className="rule-row-split">{cat.defaultSplit.wilson}/{cat.defaultSplit.yanina}</span>
+      <div className="section-title" style={{ margin: '26px 16px 12px', flexShrink: 0 }}>Gastos a dividir</div>
+      {pending.length === 0 ? (
+        <div className="empty-state">No hay gastos compartidos pendientes.</div>
+      ) : (
+        <div className="expense-cards" style={{ marginBottom: 24 }}>
+          {pending.map((exp) => (
+            <div className="expense-card" key={exp.id}>
+              <span className="dot sm" style={{ background: exp.color }} />
+              <div style={{ flex: 1 }}>
+                <div className="expense-card-name">{exp.categoryName}</div>
+                <div className="expense-card-meta">{formatDateShort(exp.date)} · pagó {exp.payer.name}</div>
               </div>
-              {editing && (
-                <div className="rule-edit">
-                  <div className="rule-edit-labels">
-                    <span>Wilson {tempPct}%</span>
-                    <span>Yanina {otherPct}%</span>
-                  </div>
-                  <input
-                    type="range" min="0" max="100" step="5" value={tempPct}
-                    onChange={(e) => setTempPct(Number(e.target.value))}
-                  />
-                  <button className="rule-save-btn" onClick={() => save(cat)}>Guardar</button>
-                </div>
+              <span className="expense-card-amount">{formatARS(exp.amount)}</span>
+              {viewer !== exp.paidBy && (
+                <button
+                  className="row-settle-btn"
+                  onClick={() => settleRow(exp.id)}
+                  disabled={settlingId === exp.id}
+                >
+                  {settlingId === exp.id ? '…' : 'Liquidar'}
+                </button>
               )}
             </div>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      )}
     </>
   );
 }

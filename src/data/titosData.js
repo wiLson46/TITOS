@@ -110,6 +110,28 @@ export function expenseIsEssential(exp, categories) {
   return isEssential(exp, categories);
 }
 
+// Un gasto es "conjunto" cuando ambas partes tienen % > 0 (genera deuda entre las dos personas).
+// Un gasto "unilateral" (100/0 o 0/100) es plata de una sola persona y no afecta el balance.
+export function isSharedExpense(exp) {
+  return exp.split.wilson > 0 && exp.split.yanina > 0;
+}
+
+export const OWNERSHIP_FILTERS = ['shared', 'wilson', 'yanina', 'all'];
+
+export function matchesOwnershipFilter(exp, filter) {
+  switch (filter) {
+    case 'wilson':
+      return exp.split.wilson === 100 && exp.split.yanina === 0;
+    case 'yanina':
+      return exp.split.yanina === 100 && exp.split.wilson === 0;
+    case 'shared':
+      return isSharedExpense(exp);
+    case 'all':
+    default:
+      return true;
+  }
+}
+
 const MONTHS_ES_FULL = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',

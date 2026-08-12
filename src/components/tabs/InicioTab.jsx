@@ -1,18 +1,29 @@
 import { useState } from 'react';
 import {
   PEOPLE, computeSummary, computeBalance, expensesForMonth, formatARS,
-  formatDateShort, monthLabel, monthWord, recentPeriods, expenseIsEssential,
+  formatDateShort, monthLabel, monthWord, recentPeriods, expenseIsEssential, matchesOwnershipFilter,
 } from '../../data/titosData';
 import { IconChevronDown, IconCheck, IconArrow } from '../ui/Icons';
 
 const PERIODS = recentPeriods(2);
 
+const OWNERSHIP_OPTIONS = [
+  { key: 'wilson', label: 'Solo Wilson' },
+  { key: 'yanina', label: 'Solo Yanina' },
+  { key: 'shared', label: 'Gastos conjuntos' },
+  { key: 'all', label: 'Todos los gastos' },
+];
+
 export default function InicioTab({ categories, expenses, viewer, onGoDividir, onGoMetricas }) {
   const [periodIdx, setPeriodIdx] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [ownership, setOwnership] = useState('shared');
+  const [ownershipMenuOpen, setOwnershipMenuOpen] = useState(false);
   const period = PERIODS[periodIdx];
+  const ownershipLabel = OWNERSHIP_OPTIONS.find((o) => o.key === ownership).label;
 
-  const periodExpenses = expensesForMonth(expenses, period.year, period.month);
+  const filteredExpenses = expenses.filter((e) => matchesOwnershipFilter(e, ownership));
+  const periodExpenses = expensesForMonth(filteredExpenses, period.year, period.month);
   const periodSummary = computeSummary(periodExpenses, categories);
   const nonEssentialPct = 100 - periodSummary.essentialPct;
 
@@ -32,7 +43,7 @@ export default function InicioTab({ categories, expenses, viewer, onGoDividir, o
     pct: periodSummary.total ? Math.round((c.total / periodSummary.total) * 100) : 0,
   }));
 
-  const recent = [...expenses]
+  const recent = [...filteredExpenses]
     .sort((a, b) => b.date.localeCompare(a.date))
     .slice(0, 3)
     .map((e) => {
@@ -47,24 +58,45 @@ export default function InicioTab({ categories, expenses, viewer, onGoDividir, o
 
   return (
     <>
-      <div style={{ padding: '10px 20px 4px', flexShrink: 0, position: 'relative' }}>
-        <button className="pill-select" onClick={() => setMenuOpen((v) => !v)}>
-          {monthLabel(period.year, period.month).toUpperCase()}
-          <IconChevronDown rotate={menuOpen} />
-        </button>
-        {menuOpen && (
-          <div className="dropdown-menu">
-            {PERIODS.map((p, i) => (
-              <button
-                key={i}
-                className={i === periodIdx ? 'active' : ''}
-                onClick={() => { setPeriodIdx(i); setMenuOpen(false); }}
-              >
-                {monthLabel(p.year, p.month)}
-              </button>
-            ))}
-          </div>
-        )}
+      <div style={{ display: 'flex', gap: 8, padding: '10px 20px 4px', flexShrink: 0 }}>
+        <div style={{ position: 'relative' }}>
+          <button className="pill-select" onClick={() => { setMenuOpen((v) => !v); setOwnershipMenuOpen(false); }}>
+            {monthLabel(period.year, period.month).toUpperCase()}
+            <IconChevronDown rotate={menuOpen} />
+          </button>
+          {menuOpen && (
+            <div className="dropdown-menu">
+              {PERIODS.map((p, i) => (
+                <button
+                  key={i}
+                  className={i === periodIdx ? 'active' : ''}
+                  onClick={() => { setPeriodIdx(i); setMenuOpen(false); }}
+                >
+                  {monthLabel(p.year, p.month)}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        <div style={{ position: 'relative' }}>
+          <button className="pill-select" onClick={() => { setOwnershipMenuOpen((v) => !v); setMenuOpen(false); }}>
+            {ownershipLabel.toUpperCase()}
+            <IconChevronDown rotate={ownershipMenuOpen} />
+          </button>
+          {ownershipMenuOpen && (
+            <div className="dropdown-menu">
+              {OWNERSHIP_OPTIONS.map((o) => (
+                <button
+                  key={o.key}
+                  className={o.key === ownership ? 'active' : ''}
+                  onClick={() => { setOwnership(o.key); setOwnershipMenuOpen(false); }}
+                >
+                  {o.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="hero-card">

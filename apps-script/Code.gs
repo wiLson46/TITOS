@@ -23,6 +23,13 @@
  *      de Google en cada request, no la capa de Apps Script — si se pone
  *      "Anyone with Google account" Apps Script intercepta el request
  *      antes de llegar acá y rompe el flujo de doPost).
+ *
+ * OJO al redeployar con `clasp deploy -i <id>` sobre un deployment ya
+ * existente: clasp no siempre respeta el "access": "ANYONE" del
+ * appsscript.json y puede resetear el deployment a "Anyone with Google
+ * account". Después de cada `clasp deploy -i`, verificar manualmente en
+ * Deploy > Manage deployments > Edit > "Who has access" que siga en
+ * "Anyone" (si no, cambiarlo ahí y volver a apretar Deploy).
  */
 
 var SPREADSHEET_ID = '1Kyr9F-KpQyLw226mVYUBVr2uPIBf0jb5GuRnBdOleWU';
@@ -84,6 +91,8 @@ function doPost(e) {
         return sendJson_(updateCategoryDefaultSplit_(postData.categoryId, postData.split));
       case 'settleUp':
         return sendJson_(settleUp_());
+      case 'settleExpense':
+        return sendJson_(settleExpense_(postData.expenseId, profile));
       default:
         throw new Error('Acción desconocida: ' + action);
     }
@@ -303,6 +312,30 @@ function settleUp_() {
   }
   if (changed) range.setValues(values);
   return getFullDataset_();
+}
+
+// Liquida un solo gasto compartido. Solo puede hacerlo quien NO pagó
+// (es decir, quien le debe su parte a quien pagó).
+function settleExpense_(expenseId, profile) {
+  if (!expenseId) throw new Error('Falta el id del gasto.');
+  var sheet = getExpensesSheet_();
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) throw new Error('Gasto no encontrado.');
+
+  var map = buildColumnMap_(EXPENSES_HEADERS);
+  var range = sheet.getRange(2, 1, lastRow - 1, EXPENSES_HEADERS.length);
+  var values = range.getValues();
+
+  for (var i = 0; i < values.length; i++) {
+    if (String(values[i][map.id]) !== String(expenseId)) continue;
+    var paidBy = String(values[i][map.paidBy]).trim();
+    if (paidBy === profile.personId) throw new Error('Solo quien no pagó puede liquidar este gasto.');
+    values[i][map.settled] = true;
+    values[i][map.settledAt] = new Date();
+    range.setValues(values);
+    return getFullDataset_();
+  }
+  throw new Error('Gasto no encontrado.');
 }
 
 // =============================================

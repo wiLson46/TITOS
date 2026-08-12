@@ -98,6 +98,18 @@ button { touch-action: manipulation; }
 .topbar-brand img { width: 20px; height: 20px; display: block; }
 .topbar-brand span { font-weight: 700; font-size: 15px; letter-spacing: -0.02em; }
 .topbar-avatars { display: flex; align-items: center; cursor: pointer; }
+.user-menu { position: relative; }
+.user-menu-trigger { background: none; border: none; padding: 0; cursor: pointer; display: flex; }
+.user-menu-dropdown {
+  position: absolute; top: 34px; right: 0; background: #fff; border-radius: 14px;
+  box-shadow: 0 6px 16px rgba(34,37,44,0.18); z-index: 30; min-width: 170px; padding: 12px 14px;
+}
+.user-menu-name { font-weight: 700; font-size: 13.5px; color: var(--ink); }
+.user-menu-email { font-family: var(--font-mono); font-size: 10px; color: var(--muted); margin-top: 2px; word-break: break-all; }
+.user-menu-logout {
+  width: 100%; margin-top: 10px; font-family: var(--font-body); font-weight: 600; font-size: 12.5px;
+  padding: 8px; border-radius: 999px; border: none; background: var(--chip-bg); color: var(--ink); cursor: pointer;
+}
 .avatar {
   width: 26px; height: 26px; border-radius: 999px; color: #fff;
   display: flex; align-items: center; justify-content: center;
@@ -183,6 +195,11 @@ button { touch-action: manipulation; }
 .expense-card-name { font-size: 13.5px; }
 .expense-card-meta { font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); margin-top: 2px; }
 .expense-card-amount { font-family: var(--font-mono); font-size: 14px; }
+.row-settle-btn {
+  font-family: var(--font-body); font-weight: 600; font-size: 11.5px; padding: 7px 12px;
+  border-radius: 999px; border: none; background: var(--ink); color: #fff; cursor: pointer; flex-shrink: 0;
+}
+.row-settle-btn:disabled { opacity: 0.6; cursor: default; }
 
 /* ---------- Historial ---------- */
 .screen-title { font-weight: 700; font-size: 17px; padding: 14px 16px 0; flex-shrink: 0; }
