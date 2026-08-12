@@ -1,16 +1,22 @@
 import { useState } from 'react';
 import {
   PEOPLE, formatARS, formatDateGroup, expenseIsEssential, matchesOwnershipFilter, OWNERSHIP_OPTIONS,
+  recentPeriods, monthLabel, expensesForMonth,
 } from '../../data/titosData';
 import { IconChevronDown } from '../ui/Icons';
+
+const PERIODS = recentPeriods(2);
 
 export default function HistorialTab({ categories, expenses }) {
   const [filter, setFilter] = useState('all');
   const [ownership, setOwnership] = useState('shared');
   const [ownershipMenuOpen, setOwnershipMenuOpen] = useState(false);
+  const [periodIdx, setPeriodIdx] = useState(0);
+  const [monthMenuOpen, setMonthMenuOpen] = useState(false);
   const ownershipLabel = OWNERSHIP_OPTIONS.find((o) => o.key === ownership).label;
+  const period = PERIODS[periodIdx];
 
-  const filtered = [...expenses]
+  const filtered = expensesForMonth([...expenses], period.year, period.month)
     .filter((e) => matchesOwnershipFilter(e, ownership))
     .sort((a, b) => b.date.localeCompare(a.date))
     .filter((e) => {
@@ -46,24 +52,45 @@ export default function HistorialTab({ categories, expenses }) {
   return (
     <>
       <div className="screen-title">Historial</div>
-      <div style={{ position: 'relative', padding: '14px 16px 0', flexShrink: 0 }}>
-        <button className="pill-select" onClick={() => setOwnershipMenuOpen((v) => !v)}>
-          {ownershipLabel.toUpperCase()}
-          <IconChevronDown rotate={ownershipMenuOpen} />
-        </button>
-        {ownershipMenuOpen && (
-          <div className="dropdown-menu">
-            {OWNERSHIP_OPTIONS.map((o) => (
-              <button
-                key={o.key}
-                className={o.key === ownership ? 'active' : ''}
-                onClick={() => { setOwnership(o.key); setOwnershipMenuOpen(false); }}
-              >
-                {o.label}
-              </button>
-            ))}
-          </div>
-        )}
+      <div style={{ display: 'flex', gap: 8, padding: '14px 16px 0', flexShrink: 0 }}>
+        <div style={{ position: 'relative' }}>
+          <button className="pill-select" onClick={() => { setMonthMenuOpen((v) => !v); setOwnershipMenuOpen(false); }}>
+            {monthLabel(period.year, period.month).toUpperCase()}
+            <IconChevronDown rotate={monthMenuOpen} />
+          </button>
+          {monthMenuOpen && (
+            <div className="dropdown-menu">
+              {PERIODS.map((p, i) => (
+                <button
+                  key={i}
+                  className={i === periodIdx ? 'active' : ''}
+                  onClick={() => { setPeriodIdx(i); setMonthMenuOpen(false); }}
+                >
+                  {monthLabel(p.year, p.month)}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        <div style={{ position: 'relative' }}>
+          <button className="pill-select" onClick={() => { setOwnershipMenuOpen((v) => !v); setMonthMenuOpen(false); }}>
+            {ownershipLabel.toUpperCase()}
+            <IconChevronDown rotate={ownershipMenuOpen} />
+          </button>
+          {ownershipMenuOpen && (
+            <div className="dropdown-menu">
+              {OWNERSHIP_OPTIONS.map((o) => (
+                <button
+                  key={o.key}
+                  className={o.key === ownership ? 'active' : ''}
+                  onClick={() => { setOwnership(o.key); setOwnershipMenuOpen(false); }}
+                >
+                  {o.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
       <div className="filter-row">
         <button className="filter-chip" style={chipStyle('all')} onClick={() => setFilter('all')}>TODOS</button>
